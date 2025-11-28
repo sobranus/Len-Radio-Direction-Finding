@@ -64,6 +64,36 @@ labels = ["D1", "D2", "D3", "D4", "D5"]
 
 start_time = time.time()
 
+def add_noise(phases, aoa,
+              sigma_phase=0.1,
+              amp_noise=0.05,
+              bias_range=0.1,
+              sigma_aoa=np.deg2rad(2)):
+
+    # 1. Random Gaussian phase noise
+    phases = phases + np.random.normal(0, sigma_phase, size=5)
+
+    # 2. Global drift
+    phases += np.random.uniform(-0.01, 0.01)
+
+    # 3. Hardware phase biases
+    biases = np.random.uniform(-bias_range, bias_range, size=5)
+    phases += biases
+
+    # 4. Amp noise => reconstruct phase
+    I = np.cos(phases) + np.random.normal(0, amp_noise, size=5)
+    Q = np.sin(phases) + np.random.normal(0, amp_noise, size=5)
+    phases = np.arctan2(Q, I)
+
+    # 5. Multipath nonlinear distortion
+    A = np.random.uniform(0.02, 0.1)
+    theta = np.random.uniform(0, 2*np.pi)
+    phases += A * np.sin(2 * phases + theta)
+
+    # 6. AoA label noise
+    aoa = aoa + np.random.normal(0, sigma_aoa)
+
+    return phases, aoa
 
 def received_signal(dist, t):
     delay = dist / C
@@ -76,15 +106,6 @@ def get_angle(p1, p2):
 
     angle_rad = math.atan2(-dy, dx)            # negative dy (pygame y-axis is flipped)
     angle_deg = (math.degrees(angle_rad) + 360) % 360
-
-    # ---- Draw line ----
-    pygame.draw.line(screen, (255, 255, 255), p1, p2, 2)
-
-    # ---- Draw angle text ON the line ----
-    mid_x = (p1[0] + p2[0]) / 2
-    mid_y = (p1[1] + p2[1]) / 2
-    text = font.render(f"{angle_deg:.1f}°", True, (255, 255, 0))
-    screen.blit(text, (mid_x, mid_y))
     
     return angle_rad, angle_deg
 
@@ -120,7 +141,6 @@ while running:
                 np.save("df_dataset.npy", dataset)
                 print("Dataset saved! Total samples:", len(dataset))
                 
-
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             mx, my = pygame.mouse.get_pos()
             if my < MAIN_HEIGHT:
@@ -179,6 +199,18 @@ while running:
 
     # Plot signals
     angle_rad, angle_deg = get_angle([center_x, center_y], SOURCE_POS)
+    phase_diffs, angle_rad = add_noise(phase_diffs, angle_rad)
+    
+    # ---- Draw line ----
+    x_aoa = center_x + math.cos(angle_rad) * 2000
+    y_aoa = center_y - math.sin(angle_rad) * 2000
+    pygame.draw.line(screen, (255, 255, 255), [center_x, center_y], [x_aoa, y_aoa], 2)
+
+    # ---- Draw angle text ON the line ----
+    mid_x = (center_x + SOURCE_POS[0]) / 2
+    mid_y = (center_y + SOURCE_POS[1]) / 2
+    text = font.render(f"{angle_rad:.1f} rad", True, (255, 255, 0))
+    screen.blit(text, (mid_x, mid_y))
     
     for i in range(N):
         pts = []
