@@ -36,7 +36,7 @@ SOURCE_POS = np.array([200.0, MAIN_HEIGHT / 2])
 # Pentagon detector positions
 # ---------------------------
 center_x = WIDTH * 0.70
-center_y = MAIN_HEIGHT * 0.55
+center_y = MAIN_HEIGHT * 0.50
 RADIUS = 30
 N = 5
 
@@ -107,7 +107,6 @@ while running:
             if event.key == pygame.K_q:
                 running = False
                 
-        if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_s:
                 data_sample = []
                 for phase in phase_diffs:
