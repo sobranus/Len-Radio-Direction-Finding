@@ -15,7 +15,7 @@ MAIN_HEIGHT = HEIGHT - GRAPH_HEIGHT
 # ---------------------------
 # Signal Parameters
 # ---------------------------
-C = 40.0        # wave propagation speed (pixels/s)
+C = 40.0         # wave propagation speed (pixels/s)
 FREQ = 0.5       # Hz
 AMPLITUDE = 1.0
 SAMPLES = WIDTH
@@ -68,7 +68,7 @@ def add_noise(phases, aoa,
               sigma_phase=0.1,
               amp_noise=0.05,
               bias_range=0.1,
-              sigma_aoa=np.deg2rad(2)):
+              sigma_aoa=np.deg2rad(1)):
 
     # 1. Random Gaussian phase noise
     phases = phases + np.random.normal(0, sigma_phase, size=5)
@@ -179,7 +179,7 @@ while running:
     for d in DETECTORS:
         pygame.draw.circle(screen, (80, 150, 255), d.astype(int), 5)
 
-    text = font.render("Pentagon Detector Array | Real-time Signals + Phase Differences",
+    text = font.render("Pentagon Antenna Array | Signals Phase Differences | AoA",
                        True, (220, 220, 220))
     screen.blit(text, (20, 20))
 
