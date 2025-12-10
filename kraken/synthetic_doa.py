@@ -91,9 +91,11 @@ class DOA:
         Estimates the direction of arrival of the received RF signal
         """
         # Calculating spatial correlation matrix
+        print(processed_signal.shape)
         R = corr_matrix(processed_signal)
+        print(R.shape)
 
-        R = de.forward_backward_avg(R)
+        R = de.forward_backward_avg(R) # If using DOA decorrelation method
         M = R.shape[0]
 
         frq_ratio = vfo_freq / self.daq_center_freq
@@ -102,11 +104,35 @@ class DOA:
         scanning_vectors = gen_scanning_vectors(
             M, inter_element_spacing, int(self.array_offset)
         )
+        
+        
+        
+        ref_norm = self.iq_samples[:, 0] / np.linalg.norm(self.iq_samples[:, 0])
+
+        # Normalize columns of A
+        A_norm = scanning_vectors / np.linalg.norm(scanning_vectors, axis=0, keepdims=True)
+
+        # Complex correlation (inner product with conjugate)
+        correlations = np.abs(np.conj(ref_norm) @ A_norm)  # shape (360,)
+
+        # Index of the most correlated vector
+        best_idx = np.argmax(correlations)
+
+        # The most correlated vector (shape: (5,))
+        best_vector = scanning_vectors[:, best_idx]
+
+        print("Best index:", best_idx)
+        print("Max correlation:", correlations[best_idx])
+        
+        
+        
 
         DOA_MUSIC_res = DOA_MUSIC(
             R, scanning_vectors, signal_dimension=self.DOA_expected_num_of_sources
         )  # de.DOA_MUSIC(R, scanning_vectors, signal_dimension = 1)
         self.DOA = DOA_MUSIC_res
+        
+        print(np.argpartition(self.DOA, -5)[-5:])
 
         theta_0 = self.DOA_theta[np.argmax(self.DOA)]
 
@@ -268,8 +294,8 @@ def generate_iq():
     wavelength = c / center_freq
     radius = 0.1726
     
-    aoa_deg = 50
-    noise_power = 0.01
+    aoa_deg = 180
+    noise_power = 0.001
     
     # ==============================
     # Derived values
@@ -288,7 +314,7 @@ def generate_iq():
     # ==============================
     antenna_angles = np.linspace(0, 2*np.pi, num_antennas, endpoint=False)
     x = radius * np.cos(antenna_angles)
-    y = radius * np.sin(antenna_angles)
+    y = -radius * np.sin(antenna_angles)
 
     # ==============================
     # Compute phase shifts (UCA steering vector)
@@ -310,6 +336,8 @@ def generate_iq():
     # ==============================
     noise = (np.random.randn(*iq.shape) + 1j*np.random.randn(*iq.shape))
     iq += np.sqrt(noise_power / 2) * noise
+    
+    print(phase_shifts)
     
     return iq
 
