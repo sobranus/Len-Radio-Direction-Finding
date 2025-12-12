@@ -9,15 +9,17 @@ def run():
     sampling_freq = 2_400_000               # Sample rate (Hz)
     duration = 0.1                          # seconds
     num_antennas = 5                        # KrakenSDR channels
+    ant_radius_wavelength = 0.5                 # radius
     center_freq = 433_920_000               # RF center freq (for phase physics)
     freq_offset = 50_000                    # signal offset from DC (Hz)
-    aoa = 130
-    noise_power = 0.001
+    aoa = 115                               # Angle of arrival (degree)
+    noise_power = 0.001                     # Noise
     
     signal = IQ(
         sampling_freq = sampling_freq,
         duration = duration,
         num_antennas = num_antennas,
+        ant_radius_wavelength = ant_radius_wavelength,
         center_freq = center_freq,
         freq_offset = freq_offset,
         aoa = aoa,
