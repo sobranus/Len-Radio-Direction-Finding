@@ -226,5 +226,4 @@ def gen_scanning_vectors(M, DOA_inter_elem_space, offset):
 
 
 if __name__ == "__main__":
-    doa = DOA()
-    doa.run()
+    pass
