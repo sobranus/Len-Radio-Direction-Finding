@@ -7,6 +7,7 @@ class IQ:
                 sampling_freq = 2_400_000,
                 duration = 0.1,
                 num_antennas = 5,
+                ant_radius_wavelength = 0.5,
                 center_freq = 433_920_000,
                 freq_offset = 50_000,
                 aoa = 60,
@@ -17,6 +18,7 @@ class IQ:
         self.sampling_freq = sampling_freq      # Sample rate (Hz)
         self.duration = duration                # seconds
         self.num_antennas = num_antennas        # KrakenSDR channels
+        self.ant_radius_wavelength = ant_radius_wavelength
         self.center_freq = center_freq          # RF center freq (for phase physics)
         self.freq_offset = freq_offset          # signal offset from DC (Hz)
         self.aoa = aoa                          # Angle of Arrival (degree)
@@ -27,7 +29,7 @@ class IQ:
         self.theta_signal = np.deg2rad(self.aoa)
         self.c = 3e8
         self.wavelength = self.c / center_freq
-        self.radius = 0.5 * self.wavelength
+        self.radius = self.ant_radius_wavelength * self.wavelength
         
         self.iq = self.generate_iq()
         if self.plot_signal:
